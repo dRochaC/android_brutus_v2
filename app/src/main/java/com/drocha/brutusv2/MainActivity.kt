@@ -28,6 +28,33 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Bluetooth off", Toast.LENGTH_LONG).show()
         }
+
+        initRecyclerView()
+    }
+
+    private fun initRecyclerView() {
+        itemsRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        val items = mutableListOf<EventItem>()
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+        items.add(EventItem("Luz interna", INTERN_LED_PATTERN))
+        items.add(EventItem("Lanterna", LANTERN_PATTERN))
+
+
+        itemsRecyclerView.adapter = ItemsAdapter(items)
     }
 
     private fun prepareEventsHandlers() {
@@ -35,7 +62,6 @@ class MainActivity : AppCompatActivity() {
             btLoading.visibility = View.GONE
 
             itemsRecyclerView.visibility = View.VISIBLE
-            itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         }
         eventHandler.subscribeToEvent(INTERN_LED_PATTERN) {
 
