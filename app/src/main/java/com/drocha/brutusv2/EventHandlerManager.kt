@@ -30,8 +30,9 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
 
             subscribedEvents.forEach {
                 val value = catchValueFromPattern(it.pattern)
-                if (value.isNotEmpty()) {
+                if (value.isNotEmpty() && value != it.lastValue) {
                     it.onCall.invoke(value)
+                    it.lastValue = value
                 }
             }
         }

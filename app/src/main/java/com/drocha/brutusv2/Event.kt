@@ -1,3 +1,7 @@
 package com.drocha.brutusv2
 
-class Event(val pattern: String, val onCall: (String) -> Unit)
+class Event(val pattern: String, val onCall: (String) -> Unit) {
+
+    var lastValue = "blabla"
+
+}
