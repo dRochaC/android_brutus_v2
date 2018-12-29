@@ -46,21 +46,22 @@
                 android:text="Item"
                 android:textColor="@color/black"
                 android:textSize="20sp"
-                android:textStyle="bold"
                 app:custom_typeface="@string/font_roboto_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/itemHeader" />
 
-            <Switch
-                android:id="@+id/sw"
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/itemOutput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
                 android:layout_margin="15dp"
+                android:text="Item"
+                android:textColor="@color/black"
+                android:textSize="22sp"
+                app:custom_typeface="@string/font_roboto_regular"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </android.support.constraint.ConstraintLayout>

@@ -5,24 +5,17 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-sealed class CommandType(val type: String) {
-    class Info(type: String = "INFO") : CommandType(type)
-    class ActionSwitch(type: String = "ACTION_SWITCH") : CommandType(type)
-    class OutputInt(type: String = "OUTPUT_INT") : CommandType(type)
-}
-
-class ModuleData(val id: String, val name: String, val commandTypeList: List<CommandType>)
-
 class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceivedListener {
 
     private var subscribedEvents = mutableListOf<Event>()
 
     private var lastMessage: String = ""
+    private var lastModule1: ModuleData? = null
 
     private var firstMessage = true
     var onConnectEvent: () -> Unit = {}
 
-    var onModule1Event: () -> Unit = {}
+    private var onModule1Event: (module: ModuleData, withError: Boolean) -> Unit = { _, _ -> }
 
     init {
         btService.setOnDataReceivedListener(this)
@@ -32,7 +25,7 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
         subscribedEvents.add(Event(pattern, onCall))
     }
 
-    fun onModule1Event(onModule1Event: () -> Unit) {
+    fun onModule1Event(onModule1Event: (module: ModuleData, withError: Boolean) -> Unit) {
         this.onModule1Event = onModule1Event
     }
 
@@ -53,20 +46,27 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
                 }
             }
 
-            checkModule1 {
-
-            }
+            checkModule1()
         }
     }
 
-    private fun checkModule1(function: () -> Unit) {
+    private fun checkModule1() {
         val obj = JSONObject(lastMessage)
         val map = jsonToMap(obj)
 
         if (map.containsKey(MODULE_1)) {
-            val module1 = jsonToMap(obj)[MODULE_1]
 
-            function.invoke()
+            var moduleError = true
+
+            val module1 = jsonToMap(obj)[MODULE_1] as List<HashMap<String, String>>
+            CommandTypeParser.tryParse(module1)?.let {
+                lastModule1 = it
+                moduleError = false
+            }
+
+            lastModule1?.let {
+                onModule1Event.invoke(it, moduleError)
+            }
         }
     }
 

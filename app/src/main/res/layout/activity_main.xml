@@ -7,63 +7,69 @@
     android:background="@color/background"
     tools:context=".MainActivity">
 
-    <android.support.constraint.Group
-        android:id="@+id/infoGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:constraint_referenced_ids="tempTitle, tempValue, itemsRecyclerView"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/appTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Brutus v2"
-        android:textColor="@color/colorPrimary"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tempTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="25dp"
-        android:text="temperature"
-        android:textColor="@color/colorPrimary"
-        android:textSize="15sp"
-        android:textStyle="normal"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appTitle" />
-
-    <TextView
-        android:id="@+id/tempValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:text="30 Cº"
-        android:textColor="@color/colorPrimary"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tempTitle" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/itemsRecyclerView"
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingTop="180dp"
-        android:paddingBottom="50dp"
-        android:scrollbars="vertical"
-        android:visibility="gone"
-        tools:listitem="@layout/recycler_switch_item"
-        tools:visibility="visible" />
+        android:layout_height="wrap_content">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/appTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:text="Brutus v2"
+                android:textColor="@color/colorPrimary"
+                android:textSize="50sp"
+                app:custom_typeface="@string/font_roboto_light"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/tempTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="25dp"
+                android:text="temperature"
+                android:textColor="@color/colorPrimary"
+                android:textSize="15sp"
+                android:textStyle="normal"
+                app:custom_typeface="@string/font_roboto_regular"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/appTitle" />
+
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/tempValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="30 Cº"
+                android:textColor="@color/colorPrimary"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                app:custom_typeface="@string/font_roboto_regular"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tempTitle" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/itemsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="true"
+                android:paddingTop="200dp"
+                android:paddingBottom="50dp"
+                android:scrollbars="vertical"
+                android:visibility="gone"
+                tools:listitem="@layout/recycler_switch_item"
+                tools:visibility="visible" />
+
+        </android.support.constraint.ConstraintLayout>
+
+    </android.support.v4.widget.NestedScrollView>
 
     <ProgressBar
         android:id="@+id/btLoading"

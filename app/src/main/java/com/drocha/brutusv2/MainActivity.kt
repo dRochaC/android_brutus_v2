@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         items.add(Item.SwitchItem("Lanterna", LANTERN_PATTERN))
         items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
+        items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
 
         itemsAdapter = ItemsAdapter(items, this)
         itemsRecyclerView.adapter = itemsAdapter
@@ -66,40 +67,40 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         eventHandler.onConnectEvent = {
             btLoading.visibility = View.GONE
 
-            infoGroup.visibility = View.VISIBLE
+            tempTitle.visibility = View.VISIBLE
+            tempValue.visibility = View.VISIBLE
+            itemsRecyclerView.visibility = View.VISIBLE
         }
 
-        subscribeToEvent(INTERN_LED_PATTERN) {
-            itemsAdapter.updateItem(
-                INTERN_LED_PATTERN, it.toBoolean()
-            )
+        eventHandler.onModule1Event { moduleData, withError ->
+            if (withError) {
+                itemsAdapter.removeModuleItems(moduleData)
+            } else {
+                itemsAdapter.updateModuleItems(moduleData)
+            }
         }
 
-        subscribeToEvent(LANTERN_PATTERN) {
-            itemsAdapter.updateItem(
-                LANTERN_PATTERN, it.toBoolean()
-            )
-        }
+        subscribeEventBooleanWithAdapter(INTERN_LED_PATTERN)
+        subscribeEventBooleanWithAdapter(LANTERN_PATTERN)
+        subscribeEventBooleanWithAdapter(ALARM_PATTERN)
+        subscribeEventBooleanWithAdapter(USB_PORT_PATTERN)
+        subscribeEventBooleanWithAdapter(MODULES_PATTERN)
 
-        subscribeToEvent(ALARM_PATTERN) {
-            itemsAdapter.updateItem(
-                ALARM_PATTERN, it.toBoolean()
-            )
-        }
-
-        subscribeToEvent(USB_PORT_PATTERN) {
-            itemsAdapter.updateItem(
-                USB_PORT_PATTERN, it.toBoolean()
-            )
-        }
-
-        subscribeToEvent(TEMP_PATTERN) {
+        subscribeEvent(TEMP_PATTERN) {
             tempValue.text = "$it Cº"
         }
     }
 
-    private fun MainActivity.subscribeToEvent(pattern: String, callback: (String) -> Unit) {
+    private fun MainActivity.subscribeEvent(pattern: String, callback: (String) -> Unit) {
         eventHandler.subscribeToEvent(pattern, callback)
+    }
+
+    private fun MainActivity.subscribeEventBooleanWithAdapter(pattern: String) {
+        eventHandler.subscribeToEvent(pattern) {
+            itemsAdapter.updateItem(
+                pattern, it.toBoolean()
+            )
+        }
     }
 
     override fun onSwitchItemValueChanged(pattern: String, isChecked: Boolean) {
@@ -125,6 +126,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val TEMP_PATTERN = "temp"
         private const val ALARM_PATTERN = "alarm"
         private const val USB_PORT_PATTERN = "usbPort"
+        private const val MODULES_PATTERN = "modules"
     }
 
 }
