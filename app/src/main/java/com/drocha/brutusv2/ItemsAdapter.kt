@@ -27,18 +27,30 @@ class ItemsAdapter(private val items: List<Item>, private val listener: ItemValu
     }
 
     fun updateItem(pattern: String, isChecked: Boolean) {
-        val item = items.find { it.pattern == pattern }
-        item?.let {
-            (it as? Item.SwitchItem)?.isChecked = isChecked
-            notifyDataSetChanged()
+        validateItem<Item.SwitchItem>(pattern) {
+            if (it.isChecked != isChecked) {
+                it.isChecked = isChecked
+                notifyItemChanged(items.indexOf(it))
+            }
         }
     }
 
-    fun updateItem(pattern: String, value: Int) {
+    fun updateItem(pattern: String, progress: Int) {
+        validateItem<Item.SeekBarItem>(pattern) {
+            if (it.progress != progress) {
+                it.progress = progress
+                notifyItemChanged(items.indexOf(it))
+            }
+        }
+    }
+
+    private inline fun <reified T : Item> validateItem(
+        pattern: String,
+        onValidate: (item: T) -> Unit
+    ) {
         val item = items.find { it.pattern == pattern }
-        item?.let {
-            (it as? Item.SeekBarItem)?.progress = value
-            notifyDataSetChanged()
+        (item as? T)?.let {
+            onValidate.invoke(it)
         }
     }
 
