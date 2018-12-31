@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
+import android.widget.TextView
 import app.akexorcist.bluetotohspp.library.BluetoothSPP
 import app.akexorcist.bluetotohspp.library.BluetoothState
 import app.akexorcist.bluetotohspp.library.BluetoothState.REQUEST_ENABLE_BT
@@ -60,6 +61,9 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 7 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
+        items.add(Item.SwitchItem("Wifi", WIFI_PATTERN))
+        items.add(Item.SwitchItem("OTA", OTA_PATTERN))
+        items.add(Item.PushButtonItem("Modo Iron Man", IRON_MAN_MODE_PATTERN))
         items.add(Item.PushButtonItem("Parar música", STOP_MUSIC_PATTERN))
 
         itemsAdapter = ItemsAdapter(items, this)
@@ -74,6 +78,8 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             tempValue.visibility = View.VISIBLE
             itemsRecyclerView.visibility = View.VISIBLE
             isPlayingTitle.visibility = View.VISIBLE
+            wifiTitle.visibility = View.VISIBLE
+            otaTitle.visibility = View.VISIBLE
         }
 
         eventHandler.onModule1Event { moduleData, withError ->
@@ -95,19 +101,43 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         subscribeEventBooleanWithAdapter(USB_PORT_PATTERN)
         subscribeEventBooleanWithAdapter(MODULES_PATTERN)
         subscribeEvent(IS_PLAYING_PATTERN) {
-            var color = R.color.colorPrimary
-            if (it.toBoolean()) {
-                color = R.color.red
-                isPlayingTitle.text = "is playing music"
-            } else {
-                isPlayingTitle.text = "idle"
-            }
-            isPlayingTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
+            setColoredText(
+                it.toBoolean(), isPlayingTitle, "is playing music", "idle"
+            )
         }
-
+        subscribeEvent(WIFI_NAME_PATTERN) {
+            setColoredText(
+                it.isNotEmpty(), wifiTitle, it, "no wifi connection"
+            )
+        }
+        subscribeEventBooleanWithAdapter(WIFI_PATTERN)
+        subscribeEvent(OTA_PATTERN) {
+            setColoredText(
+                it.toBoolean(), otaTitle, "OTA enabled", "OTA disabled"
+            )
+            itemsAdapter.updateItem(
+                OTA_PATTERN, it.toBoolean()
+            )
+        }
         subscribeEvent(TEMP_PATTERN) {
-            tempValue.text = "$it Cº"
+            tempValue.text = "$it ºC"
         }
+    }
+
+    private fun setColoredText(
+        status: Boolean,
+        textView: TextView,
+        trueText: String,
+        elseText: String
+    ) {
+        var color = R.color.red
+        if (status) {
+            color = R.color.colorPrimary
+            textView.text = trueText
+        } else {
+            textView.text = elseText
+        }
+        textView.setTextColor(ContextCompat.getColor(this@MainActivity, color))
     }
 
     private fun MainActivity.subscribeEvent(pattern: String, callback: (String) -> Unit) {
@@ -155,6 +185,9 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val STOP_MUSIC_PATTERN = "stopMusic"
         private const val IRON_MAN_MODE_PATTERN = "ironManMode"
         private const val IS_PLAYING_PATTERN = "isPlaying"
+        private const val WIFI_PATTERN = "wifi"
+        private const val WIFI_NAME_PATTERN = "wifiName"
+        private const val OTA_PATTERN = "ota"
     }
 
 }

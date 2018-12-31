@@ -62,13 +62,41 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
                 android:layout_marginEnd="20dp"
-                android:text="playing music"
+                android:text="idle"
                 android:textColor="@color/red"
-                android:textSize="25sp"
+                android:textSize="16sp"
                 android:visibility="gone"
-                app:custom_typeface="@string/font_roboto_regular"
+                app:custom_typeface="@string/font_roboto_light"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/appTitle"
+                tools:visibility="visible" />
+
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/wifiTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:text="no wifi connection"
+                android:textColor="@color/red"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:custom_typeface="@string/font_roboto_light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/isPlayingTitle"
+                tools:visibility="visible" />
+
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/otaTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:text="OTA disabled"
+                android:textColor="@color/red"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:custom_typeface="@string/font_roboto_light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/wifiTitle"
                 tools:visibility="visible" />
 
             <android.support.v7.widget.RecyclerView
