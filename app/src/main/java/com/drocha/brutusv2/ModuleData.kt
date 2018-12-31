@@ -5,9 +5,11 @@ import android.util.Log
 
 const val INFO = "INFO"
 const val ACTION_SWITCH = "ACTION_SWITCH"
+const val ACTION_PUSH_BUTTON = "ACTION_PUSH_BUTTON"
 const val OUTPUT_VALUE = "OUTPUT_VALUE"
 
 sealed class CommandType(val value: String) {
+    class ActionPushButton(val label: String, val command: String) : CommandType("")
     class ActionSwitch(val label: String, val command: String, value: String) : CommandType(value)
     class OutputValue(val label: String, value: String) : CommandType(value)
 }
@@ -31,8 +33,16 @@ object CommandTypeParser {
                 }
 
                 val commandType = when (type) {
-                    ACTION_SWITCH -> CommandType.ActionSwitch(it["label"]!!, it["command"]!!, it["value"]!!)
+                    ACTION_SWITCH -> CommandType.ActionSwitch(
+                        it["label"]!!,
+                        it["command"]!!,
+                        it["value"]!!
+                    )
                     OUTPUT_VALUE -> CommandType.OutputValue(it["label"]!!, it["value"]!!)
+                    ACTION_PUSH_BUTTON -> CommandType.ActionPushButton(
+                        it["label"]!!,
+                        it["command"]!!
+                    )
                     else -> throw UnsupportedOperationException()
                 }
 

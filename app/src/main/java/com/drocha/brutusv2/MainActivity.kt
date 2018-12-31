@@ -3,6 +3,7 @@ package com.drocha.brutusv2
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
@@ -53,11 +54,13 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
 
         val items = mutableListOf<Item>()
+        items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
         items.add(Item.SwitchItem("Luz interna", INTERN_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna", LANTERN_PATTERN))
-        items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
+        items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 7 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
+        items.add(Item.PushButtonItem("Parar música", STOP_MUSIC_PATTERN))
 
         itemsAdapter = ItemsAdapter(items, this)
         itemsRecyclerView.adapter = itemsAdapter
@@ -70,6 +73,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             tempTitle.visibility = View.VISIBLE
             tempValue.visibility = View.VISIBLE
             itemsRecyclerView.visibility = View.VISIBLE
+            isPlayingTitle.visibility = View.VISIBLE
         }
 
         eventHandler.onModule1Event { moduleData, withError ->
@@ -80,11 +84,26 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             }
         }
 
+        subscribeEventBooleanWithAdapter(ALARM_PATTERN)
         subscribeEventBooleanWithAdapter(INTERN_LED_PATTERN)
         subscribeEventBooleanWithAdapter(LANTERN_PATTERN)
-        subscribeEventBooleanWithAdapter(ALARM_PATTERN)
+        subscribeEvent(VOLUME_PATTERN) {
+            itemsAdapter.updateItem(
+                VOLUME_PATTERN, it.toInt()
+            )
+        }
         subscribeEventBooleanWithAdapter(USB_PORT_PATTERN)
         subscribeEventBooleanWithAdapter(MODULES_PATTERN)
+        subscribeEvent(IS_PLAYING_PATTERN) {
+            var color = R.color.colorPrimary
+            if (it.toBoolean()) {
+                color = R.color.red
+                isPlayingTitle.text = "is playing music"
+            } else {
+                isPlayingTitle.text = "idle"
+            }
+            isPlayingTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
+        }
 
         subscribeEvent(TEMP_PATTERN) {
             tempValue.text = "$it Cº"
@@ -116,6 +135,11 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         itemsAdapter.updateItem(pattern, value)
     }
 
+    override fun onPushButtonItemClick(pattern: String) {
+        val data = "$pattern$1"
+        btService.send(data, true)
+    }
+
     companion object {
         private const val BRUTUS_ADDRESS = "3C:71:BF:0F:F5:32"
         private const val BRUTUS_DEVICE_NAME = "BrutusV2"
@@ -127,6 +151,10 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val ALARM_PATTERN = "alarm"
         private const val USB_PORT_PATTERN = "usbPort"
         private const val MODULES_PATTERN = "modules"
+        private const val VOLUME_PATTERN = "volume"
+        private const val STOP_MUSIC_PATTERN = "stopMusic"
+        private const val IRON_MAN_MODE_PATTERN = "ironManMode"
+        private const val IS_PLAYING_PATTERN = "isPlaying"
     }
 
 }

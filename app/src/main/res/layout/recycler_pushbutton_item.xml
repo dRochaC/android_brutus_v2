@@ -46,46 +46,22 @@
                 android:text="Item"
                 android:textColor="@color/black"
                 android:textSize="20sp"
-                android:textStyle="bold"
                 app:custom_typeface="@string/font_roboto_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/itemHeader" />
 
-            <android.support.constraint.Guideline
-                android:id="@+id/guideline"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintGuide_percent="0.45"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <SeekBar
-                android:id="@+id/seekbar"
-                style="@style/Base.Widget.AppCompat.SeekBar.Discrete"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:max="7"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/seekbarPercent"
-                app:layout_constraintStart_toEndOf="@+id/guideline"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <com.thebrownarrow.customfont.CustomFontTextView
-                android:id="@+id/seekbarPercent"
+            <Button
+                android:id="@+id/itemAction"
+                style="@style/Base.Widget.AppCompat.Button.Colored"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="15dp"
-                android:text="100%"
-                android:textColor="@color/black"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                app:custom_typeface="@string/font_roboto_regular"
+                android:layout_marginEnd="15dp"
+                android:text="ação"
+                android:textColor="@color/white"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </android.support.constraint.ConstraintLayout>

@@ -6,11 +6,15 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 
 sealed class Item(val name: String, val pattern: String, val color: Int, val title: String) {
+    class PushButtonItem(name: String, pattern: String, color: Int = -1, title: String = "") :
+        Item(name, pattern, color, title)
+
     class SwitchItem(name: String, pattern: String, color: Int = -1, title: String = "") :
         Item(name, pattern, color, title) {
         var isChecked = false
@@ -19,6 +23,7 @@ sealed class Item(val name: String, val pattern: String, val color: Int, val tit
     class SeekBarItem(name: String, pattern: String, color: Int = -1, title: String = "") :
         Item(name, pattern, color, title) {
         var progress = 0
+        var maxProgress = 7
     }
 
     class OutputItem(name: String, pattern: String, color: Int = -1, title: String = "") :
@@ -36,6 +41,7 @@ class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     val seekBar = view.findViewById<SeekBar?>(R.id.seekbar)
     val seekBarPercent = view.findViewById<TextView?>(R.id.seekbarPercent)
     val itemOutput = view.findViewById<TextView?>(R.id.itemOutput)
+    val pushButton = view.findViewById<Button?>(R.id.itemAction)
 }
 
 class ItemsAdapter(private val items: MutableList<Item>, private val listener: ItemValueChange) :
@@ -44,6 +50,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
     interface ItemValueChange {
         fun onSwitchItemValueChanged(pattern: String, isChecked: Boolean)
         fun onSeekBarItemValueChanged(pattern: String, value: Int)
+        fun onPushButtonItemClick(pattern: String)
     }
 
     fun updateModuleItems(moduleData: ModuleData) {
@@ -108,6 +115,10 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
                 outputItem.value = it.value
                 outputItem
             }
+            is CommandType.ActionPushButton -> {
+                val pattern = "${moduleData.id}:${it.command}"
+                Item.PushButtonItem(it.label, pattern, moduleData.color, moduleData.name)
+            }
         }
     }
 
@@ -148,6 +159,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
             SWITCH -> R.layout.recycler_switch_item
             SEEK_BAR -> R.layout.recycler_seekbar_item
             OUTPUT -> R.layout.recycler_output_item
+            PUSH_BUTTON -> R.layout.recycler_pushbutton_item
             else -> -1
         }
 
@@ -161,6 +173,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
 
         holder.switch?.setOnCheckedChangeListener(null)
         holder.seekBar?.setOnSeekBarChangeListener(null)
+        holder.pushButton?.setOnClickListener(null)
 
         holder.cardView.setCardBackgroundColor(if (item.color != -1) item.color else Color.WHITE)
         holder.itemHeader.visibility = if (item.title.isNotEmpty()) View.VISIBLE else View.GONE
@@ -175,13 +188,14 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
             }
             is Item.SeekBarItem -> {
                 holder.seekBar?.progress = item.progress
-                val progress = item.progress * 10
+                holder.seekBar?.max = item.maxProgress
+                val progress = item.progress * item.maxProgress
                 holder.seekBarPercent?.text = "$progress%"
 
                 holder.seekBar?.setOnSeekBarChangeListener(object :
                     SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
-                        val sProgress = p0?.progress!! * 10
+                        val sProgress = p0?.progress!! * 100 / item.maxProgress
                         holder.seekBarPercent?.text = "$sProgress%"
                     }
 
@@ -198,6 +212,9 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
             is Item.OutputItem -> {
                 holder.itemOutput?.text = item.value
             }
+            is Item.PushButtonItem -> {
+                holder.pushButton?.setOnClickListener { listener.onPushButtonItemClick(item.pattern) }
+            }
         }
     }
 
@@ -210,6 +227,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
             is Item.SwitchItem -> SWITCH
             is Item.SeekBarItem -> SEEK_BAR
             is Item.OutputItem -> OUTPUT
+            is Item.PushButtonItem -> PUSH_BUTTON
         }
     }
 
@@ -217,6 +235,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
         private const val SWITCH = 0
         private const val SEEK_BAR = 1
         private const val OUTPUT = 2
+        private const val PUSH_BUTTON = 3
     }
 
 }
