@@ -6,12 +6,16 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.SeekBar
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 
-sealed class Item(val name: String, val pattern: String, val color: Int, val title: String) {
+sealed class Item(
+    val name: String,
+    val pattern: String,
+    val color: Int,
+    val title: String,
+    var showProgress: Boolean = false
+) {
+
     class PushButtonItem(name: String, pattern: String, color: Int = -1, title: String = "") :
         Item(name, pattern, color, title)
 
@@ -29,6 +33,7 @@ sealed class Item(val name: String, val pattern: String, val color: Int, val tit
     class OutputItem(name: String, pattern: String, color: Int = -1, title: String = "") :
         Item(name, pattern, color, title) {
         var value = ""
+        var textColor: Int = Color.BLACK
     }
 }
 
@@ -42,6 +47,7 @@ class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     val seekBarPercent = view.findViewById<TextView?>(R.id.seekbarPercent)
     val itemOutput = view.findViewById<TextView?>(R.id.itemOutput)
     val pushButton = view.findViewById<Button?>(R.id.itemAction)
+    val progressBar = view.findViewById<ProgressBar?>(R.id.progressBar)
 }
 
 class ItemsAdapter(private val items: MutableList<Item>, private val listener: ItemValueChange) :
@@ -50,7 +56,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
     interface ItemValueChange {
         fun onSwitchItemValueChanged(pattern: String, isChecked: Boolean)
         fun onSeekBarItemValueChanged(pattern: String, value: Int)
-        fun onPushButtonItemClick(pattern: String)
+        fun onPushButtonItemClick(item: Item)
     }
 
     fun updateModuleItems(moduleData: ModuleData) {
@@ -122,19 +128,30 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
         }
     }
 
-    fun updateItem(pattern: String, isChecked: Boolean) {
+    fun updateSwitchItem(pattern: String, isChecked: Boolean) {
         validateItem<Item.SwitchItem>(pattern) {
+            it.showProgress = false
             if (it.isChecked != isChecked) {
                 it.isChecked = isChecked
-                notifyItemChanged(items.indexOf(it))
             }
+            notifyItemChanged(items.indexOf(it))
         }
     }
 
-    fun updateItem(pattern: String, progress: Int) {
+    fun updateSeekBarItem(pattern: String, progress: Int) {
         validateItem<Item.SeekBarItem>(pattern) {
+            it.showProgress = false
             if (it.progress != progress) {
                 it.progress = progress
+            }
+            notifyItemChanged(items.indexOf(it))
+        }
+    }
+
+    fun updateOutputItem(pattern: String, value: String) {
+        validateItem<Item.OutputItem>(pattern) {
+            if (it.value != value) {
+                it.value = value
                 notifyItemChanged(items.indexOf(it))
             }
         }
@@ -178,18 +195,21 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
         holder.cardView.setCardBackgroundColor(if (item.color != -1) item.color else Color.WHITE)
         holder.itemHeader.visibility = if (item.title.isNotEmpty()) View.VISIBLE else View.GONE
         holder.itemHeader.text = item.title
+        holder.progressBar?.visibility = if (item.showProgress) View.VISIBLE else View.GONE
 
         when (item) {
             is Item.SwitchItem -> {
                 holder.switch?.isChecked = item.isChecked
                 holder.switch?.setOnCheckedChangeListener { _, isChecked ->
                     listener.onSwitchItemValueChanged(item.pattern, isChecked)
+                    item.showProgress = true
+                    notifyItemChanged(position)
                 }
             }
             is Item.SeekBarItem -> {
                 holder.seekBar?.progress = item.progress
                 holder.seekBar?.max = item.maxProgress
-                val progress = item.progress * item.maxProgress
+                val progress = item.progress * 100 / item.maxProgress
                 holder.seekBarPercent?.text = "$progress%"
 
                 holder.seekBar?.setOnSeekBarChangeListener(object :
@@ -204,16 +224,21 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
                     }
 
                     override fun onStopTrackingTouch(p0: SeekBar?) {
-                        listener.onSeekBarItemValueChanged(item.pattern, p0?.progress!!)
+                        val actualProgress = p0?.progress!!
+                        listener.onSeekBarItemValueChanged(item.pattern, actualProgress)
+                        item.progress = actualProgress
+                        item.showProgress = true
+                        notifyItemChanged(position)
                     }
 
                 })
             }
             is Item.OutputItem -> {
                 holder.itemOutput?.text = item.value
+                holder.itemOutput?.setTextColor(item.textColor)
             }
             is Item.PushButtonItem -> {
-                holder.pushButton?.setOnClickListener { listener.onPushButtonItemClick(item.pattern) }
+                holder.pushButton?.setOnClickListener { listener.onPushButtonItemClick(item) }
             }
         }
     }

@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import app.akexorcist.bluetotohspp.library.BluetoothSPP
 import app.akexorcist.bluetotohspp.library.BluetoothState
 import app.akexorcist.bluetotohspp.library.BluetoothState.REQUEST_ENABLE_BT
@@ -55,9 +56,15 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
 
         val items = mutableListOf<Item>()
-        items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
+        items.add(Item.OutputItem("Consumo total", BACKPACK_CONSUMPTION_PATTERN).apply {
+            textColor = ContextCompat.getColor(this@MainActivity, R.color.red)
+        })
+        items.add(Item.OutputItem("Energia solar", SOLAR_CONSUMPTION_PATTERN).apply {
+            textColor = ContextCompat.getColor(this@MainActivity, R.color.green)
+        })
         items.add(Item.SwitchItem("Luz interna", INTERN_LED_PATTERN))
-        items.add(Item.SwitchItem("Lanterna", LANTERN_PATTERN))
+        items.add(Item.SwitchItem("Lanterna frontal", FRONT_LANTERN_PATTERN))
+        items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 7 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
@@ -68,10 +75,12 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
         itemsAdapter = ItemsAdapter(items, this)
         itemsRecyclerView.adapter = itemsAdapter
+        itemsRecyclerView.itemAnimator = null
     }
 
     private fun prepareEventsHandlers() {
-        eventHandler.onConnectEvent = {
+        eventHandler.prepare()
+        eventHandler.onConnectEvent {
             btLoading.visibility = View.GONE
 
             tempTitle.visibility = View.VISIBLE
@@ -80,6 +89,14 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             isPlayingTitle.visibility = View.VISIBLE
             wifiTitle.visibility = View.VISIBLE
             otaTitle.visibility = View.VISIBLE
+        }
+
+        eventHandler.onDisconnectEvent {
+            disconnectLoading.visibility = View.VISIBLE
+        }
+
+        eventHandler.onReconnectEvent {
+            disconnectLoading.visibility = View.GONE
         }
 
         eventHandler.onModule1Event { moduleData, withError ->
@@ -92,9 +109,10 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
         subscribeEventBooleanWithAdapter(ALARM_PATTERN)
         subscribeEventBooleanWithAdapter(INTERN_LED_PATTERN)
-        subscribeEventBooleanWithAdapter(LANTERN_PATTERN)
+        subscribeEventBooleanWithAdapter(FRONT_LANTERN_PATTERN)
+        subscribeEventBooleanWithAdapter(BACK_LANTERN_PATTERN)
         subscribeEvent(VOLUME_PATTERN) {
-            itemsAdapter.updateItem(
+            itemsAdapter.updateSeekBarItem(
                 VOLUME_PATTERN, it.toInt()
             )
         }
@@ -106,8 +124,9 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             )
         }
         subscribeEvent(WIFI_NAME_PATTERN) {
+            val isEmpty = it == " " || it.isEmpty()
             setColoredText(
-                it.isNotEmpty(), wifiTitle, it, "no wifi connection"
+                !isEmpty, wifiTitle, it, "no wifi connection"
             )
         }
         subscribeEventBooleanWithAdapter(WIFI_PATTERN)
@@ -115,12 +134,22 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             setColoredText(
                 it.toBoolean(), otaTitle, "OTA enabled", "OTA disabled"
             )
-            itemsAdapter.updateItem(
+            itemsAdapter.updateSwitchItem(
                 OTA_PATTERN, it.toBoolean()
             )
         }
         subscribeEvent(TEMP_PATTERN) {
             tempValue.text = "$it ºC"
+        }
+        subscribeEvent(BACKPACK_CONSUMPTION_PATTERN) {
+            itemsAdapter.updateOutputItem(
+                BACKPACK_CONSUMPTION_PATTERN, "$it mA"
+            )
+        }
+        subscribeEvent(SOLAR_CONSUMPTION_PATTERN) {
+            itemsAdapter.updateOutputItem(
+                SOLAR_CONSUMPTION_PATTERN, "$it mA"
+            )
         }
     }
 
@@ -130,12 +159,12 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         trueText: String,
         elseText: String
     ) {
-        var color = R.color.red
-        if (status) {
-            color = R.color.colorPrimary
+        val color = if (status) {
             textView.text = trueText
+            R.color.colorPrimary
         } else {
             textView.text = elseText
+            R.color.red
         }
         textView.setTextColor(ContextCompat.getColor(this@MainActivity, color))
     }
@@ -146,7 +175,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
     private fun MainActivity.subscribeEventBooleanWithAdapter(pattern: String) {
         eventHandler.subscribeToEvent(pattern) {
-            itemsAdapter.updateItem(
+            itemsAdapter.updateSwitchItem(
                 pattern, it.toBoolean()
             )
         }
@@ -156,18 +185,17 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         val state = if (isChecked) "1" else "0"
         val data = "$pattern$state"
         btService.send(data, true)
-        itemsAdapter.updateItem(pattern, isChecked)
     }
 
     override fun onSeekBarItemValueChanged(pattern: String, value: Int) {
         val data = "$pattern$value"
         btService.send(data, true)
-        itemsAdapter.updateItem(pattern, value)
     }
 
-    override fun onPushButtonItemClick(pattern: String) {
-        val data = "$pattern$1"
+    override fun onPushButtonItemClick(item: Item) {
+        val data = "${item.pattern}$1"
         btService.send(data, true)
+        Toast.makeText(this, "Ação: ${item.name}", Toast.LENGTH_LONG).show()
     }
 
     companion object {
@@ -176,7 +204,8 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
         // Events
         private const val INTERN_LED_PATTERN = "internLed"
-        private const val LANTERN_PATTERN = "lantern"
+        private const val FRONT_LANTERN_PATTERN = "frontLantern"
+        private const val BACK_LANTERN_PATTERN = "backLantern"
         private const val TEMP_PATTERN = "temp"
         private const val ALARM_PATTERN = "alarm"
         private const val USB_PORT_PATTERN = "usbPort"
@@ -188,6 +217,8 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val WIFI_PATTERN = "wifi"
         private const val WIFI_NAME_PATTERN = "wifiName"
         private const val OTA_PATTERN = "ota"
+        private const val BACKPACK_CONSUMPTION_PATTERN = "backpackConsumption"
+        private const val SOLAR_CONSUMPTION_PATTERN = "solarConsumption"
     }
 
 }

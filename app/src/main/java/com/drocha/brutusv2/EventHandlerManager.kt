@@ -1,5 +1,6 @@
 package com.drocha.brutusv2
 
+import android.os.Handler
 import app.akexorcist.bluetotohspp.library.BluetoothSPP
 import org.json.JSONArray
 import org.json.JSONException
@@ -9,16 +10,54 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
 
     private var subscribedEvents = mutableListOf<Event>()
 
+    private var isConnected = true
+
     private var lastMessage: String = ""
     private var lastModule1: ModuleData? = null
 
+    private var lastMessageTime = System.currentTimeMillis()
+
     private var firstMessage = true
-    var onConnectEvent: () -> Unit = {}
+    private var onConnectEvent: () -> Unit = {}
+    private var onDisconnectEvent: () -> Unit = {}
+    private var onReconnectEvent: () -> Unit = {}
 
     private var onModule1Event: (module: ModuleData, withError: Boolean) -> Unit = { _, _ -> }
 
+    private var handler: Handler? = null
+
     init {
         btService.setOnDataReceivedListener(this)
+    }
+
+    fun prepare() {
+        val handler = Handler()
+        val runnable = object : Runnable {
+            override fun run() {
+                val actualTime = System.currentTimeMillis()
+                if (actualTime - lastMessageTime > IS_CONNECTED_TIME) {
+                    isConnected = false
+                    onDisconnectEvent.invoke()
+                } else if (!isConnected) {
+                    isConnected = true
+                    onReconnectEvent.invoke()
+                }
+                handler.postDelayed(this, 1000)
+            }
+        }
+        handler.postDelayed(runnable, 1000)
+    }
+
+    fun onConnectEvent(onConnectEvent: () -> Unit) {
+        this.onConnectEvent = onConnectEvent
+    }
+
+    fun onDisconnectEvent(onDisconnectEvent: () -> Unit) {
+        this.onDisconnectEvent = onDisconnectEvent
+    }
+
+    fun onReconnectEvent(onReconnectEvent: () -> Unit) {
+        this.onReconnectEvent = onReconnectEvent
     }
 
     fun subscribeToEvent(pattern: String, onCall: (String) -> Unit) {
@@ -36,6 +75,7 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
         }
 
         message?.let { _message ->
+            lastMessageTime = System.currentTimeMillis()
             lastMessage = _message
 
             subscribedEvents.forEach {
@@ -124,6 +164,7 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
     companion object {
 
         private const val MODULE_1 = "module1"
+        private const val IS_CONNECTED_TIME = 3000
     }
 
 }
