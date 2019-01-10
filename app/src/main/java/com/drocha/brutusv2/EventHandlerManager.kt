@@ -3,7 +3,6 @@ package com.drocha.brutusv2
 import android.os.Handler
 import app.akexorcist.bluetotohspp.library.BluetoothSPP
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
 class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceivedListener {
@@ -98,10 +97,14 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
 
             var moduleError = true
 
-            val module1 = jsonToMap(obj)[MODULE_1] as List<HashMap<String, String>>
-            CommandTypeParser.tryParse(module1)?.let {
-                lastModule1 = it
-                moduleError = false
+            try {
+                val module1 = jsonToMap(obj)[MODULE_1] as List<HashMap<String, String>>
+                CommandTypeParser.tryParse(module1)?.let {
+                    lastModule1 = it
+                    moduleError = false
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
 
             lastModule1?.let {
@@ -111,14 +114,17 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
     }
 
     private fun catchValueFromPattern(pattern: String): String {
-        val obj = JSONObject(lastMessage)
-        val map = jsonToMap(obj)
+        return try {
+            val obj = JSONObject(lastMessage)
+            val map = jsonToMap(obj)
 
-        return map[pattern].toString()
+            map[pattern].toString()
+        } catch (e: Exception) {
+            ""
+        }
     }
 
-    @Throws(JSONException::class)
-    fun jsonToMap(json: JSONObject): Map<String, Any> {
+    private fun jsonToMap(json: JSONObject): Map<String, Any> {
         var retMap: Map<String, Any> = HashMap()
 
         if (json !== JSONObject.NULL) {
@@ -127,8 +133,7 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
         return retMap
     }
 
-    @Throws(JSONException::class)
-    fun toMap(`object`: JSONObject): Map<String, Any> {
+    private fun toMap(`object`: JSONObject): Map<String, Any> {
         val map = HashMap<String, Any>()
 
         val keysItr = `object`.keys()
@@ -146,8 +151,7 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
         return map
     }
 
-    @Throws(JSONException::class)
-    fun toList(array: JSONArray): List<Any> {
+    private fun toList(array: JSONArray): List<Any> {
         val list = ArrayList<Any>()
         for (i in 0 until array.length()) {
             var value = array.get(i)
