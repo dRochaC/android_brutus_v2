@@ -79,6 +79,16 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
                             notifyItemChanged(position)
                         }
                     }
+                    is Item.SwitchItem -> {
+                        val oldItem = items[position]
+                        if (oldItem is Item.SwitchItem &&
+                            newItem is Item.SwitchItem &&
+                            oldItem.isChecked != newItem.isChecked
+                        ) {
+                            items[position] = newItem
+                            notifyItemChanged(position)
+                        }
+                    }
                 }
             } ?: run {
                 items.add(newItem)

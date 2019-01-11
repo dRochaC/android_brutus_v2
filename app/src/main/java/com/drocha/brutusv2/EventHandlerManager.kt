@@ -90,26 +90,27 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
     }
 
     private fun checkModule1() {
-        val obj = JSONObject(lastMessage)
-        val map = jsonToMap(obj)
+        try {
+            val obj = JSONObject(lastMessage)
+            val map = jsonToMap(obj)
 
-        if (map.containsKey(MODULE_1)) {
+            if (map.containsKey(MODULE_1)) {
 
-            var moduleError = true
+                var moduleError = true
 
-            try {
+
                 val module1 = jsonToMap(obj)[MODULE_1] as List<HashMap<String, String>>
                 CommandTypeParser.tryParse(module1)?.let {
                     lastModule1 = it
                     moduleError = false
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
 
-            lastModule1?.let {
-                onModule1Event.invoke(it, moduleError)
+                lastModule1?.let {
+                    onModule1Event.invoke(it, moduleError)
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
