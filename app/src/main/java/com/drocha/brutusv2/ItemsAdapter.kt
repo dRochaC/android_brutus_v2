@@ -217,8 +217,8 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
                 }
             }
             is Item.SeekBarItem -> {
-                holder.seekBar?.progress = item.progress
                 holder.seekBar?.max = item.maxProgress
+                holder.seekBar?.progress = item.progress
                 val progress = item.progress * 100 / item.maxProgress
                 holder.seekBarPercent?.text = "$progress%"
 

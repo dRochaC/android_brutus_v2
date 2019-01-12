@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             textColor = ContextCompat.getColor(this@MainActivity, R.color.green)
         })
         items.add(Item.SwitchItem("Luz interna", INTERN_LED_PATTERN))
-        items.add(Item.SwitchItem("Lanterna frontal", FRONT_LANTERN_PATTERN))
+        items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 30 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
         subscribeEventBooleanWithAdapter(ALARM_PATTERN)
         subscribeEventBooleanWithAdapter(INTERN_LED_PATTERN)
-        subscribeEventBooleanWithAdapter(FRONT_LANTERN_PATTERN)
+        subscribeEventBooleanWithAdapter(INTERN_AUTO_LED_PATTERN)
         subscribeEventBooleanWithAdapter(BACK_LANTERN_PATTERN)
         subscribeEvent(VOLUME_PATTERN) {
             itemsAdapter.updateSeekBarItem(
@@ -184,17 +184,17 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
     override fun onSwitchItemValueChanged(pattern: String, isChecked: Boolean) {
         val state = if (isChecked) "1" else "0"
-        val data = "$pattern$state"
+        val data = "$pattern:$state"
         btService.send(data, true)
     }
 
     override fun onSeekBarItemValueChanged(pattern: String, value: Int) {
-        val data = "$pattern$value"
+        val data = "$pattern:$value"
         btService.send(data, true)
     }
 
     override fun onPushButtonItemClick(item: Item) {
-        val data = "${item.pattern}$1"
+        val data = "${item.pattern}:1"
         btService.send(data, true)
         Toast.makeText(this, "Ação: ${item.name}", Toast.LENGTH_LONG).show()
     }
@@ -205,7 +205,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
         // Events
         private const val INTERN_LED_PATTERN = "internLed"
-        private const val FRONT_LANTERN_PATTERN = "frontLantern"
+        private const val INTERN_AUTO_LED_PATTERN = "autoInternLed"
         private const val BACK_LANTERN_PATTERN = "backLantern"
         private const val TEMP_PATTERN = "temp"
         private const val ALARM_PATTERN = "alarm"
