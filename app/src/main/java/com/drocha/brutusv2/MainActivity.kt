@@ -65,13 +65,14 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         items.add(Item.SwitchItem("Luz interna", INTERN_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna frontal", FRONT_LANTERN_PATTERN))
         items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
-        items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 7 })
+        items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 30 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
         items.add(Item.SwitchItem("Wifi", WIFI_PATTERN))
         items.add(Item.SwitchItem("OTA", OTA_PATTERN))
         items.add(Item.PushButtonItem("Modo Iron Man", IRON_MAN_MODE_PATTERN))
         items.add(Item.PushButtonItem("Parar música", STOP_MUSIC_PATTERN))
+        items.add(Item.PushButtonItem("Restart", RESTART_PATTERN))
 
         itemsAdapter = ItemsAdapter(items, this)
         itemsRecyclerView.adapter = itemsAdapter
@@ -118,9 +119,9 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         }
         subscribeEventBooleanWithAdapter(USB_PORT_PATTERN)
         subscribeEventBooleanWithAdapter(MODULES_PATTERN)
-        subscribeEvent(IS_PLAYING_PATTERN) {
+        subscribeEvent(DF_PLAYER_PATTERN) {
             setColoredText(
-                it.toBoolean(), isPlayingTitle, "is playing music", "idle"
+                !it.toBoolean(), isPlayingTitle, "is playing music", "idle"
             )
         }
         subscribeEvent(WIFI_NAME_PATTERN) {
@@ -213,10 +214,11 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val VOLUME_PATTERN = "volume"
         private const val STOP_MUSIC_PATTERN = "stopMusic"
         private const val IRON_MAN_MODE_PATTERN = "ironManMode"
-        private const val IS_PLAYING_PATTERN = "isPlaying"
+        private const val DF_PLAYER_PATTERN = "dfPlayer"
         private const val WIFI_PATTERN = "wifi"
         private const val WIFI_NAME_PATTERN = "wifiName"
         private const val OTA_PATTERN = "ota"
+        private const val RESTART_PATTERN = "espRestart"
         private const val BACKPACK_CONSUMPTION_PATTERN = "backpackConsumption"
         private const val SOLAR_CONSUMPTION_PATTERN = "solarConsumption"
     }
