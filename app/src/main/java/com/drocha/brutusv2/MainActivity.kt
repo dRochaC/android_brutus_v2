@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
@@ -21,6 +22,8 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
     private val eventHandler = EventHandlerManager(btService)
 
     private lateinit var itemsAdapter: ItemsAdapter
+
+    private var dialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,11 +62,18 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         items.add(Item.OutputItem("Consumo total", BACKPACK_CONSUMPTION_PATTERN).apply {
             textColor = ContextCompat.getColor(this@MainActivity, R.color.red)
         })
+        items.add(Item.OutputItem("Consumo total (RAW)", BACKPACK_CONSUMPTION_RAW_PATTERN).apply {
+            textColor = ContextCompat.getColor(this@MainActivity, R.color.red)
+        })
         items.add(Item.OutputItem("Energia solar", SOLAR_CONSUMPTION_PATTERN).apply {
             textColor = ContextCompat.getColor(this@MainActivity, R.color.green)
         })
+        items.add(Item.OutputItem("Energia solar (RAW)", SOLAR_CONSUMPTION_RAW_PATTERN).apply {
+            textColor = ContextCompat.getColor(this@MainActivity, R.color.green)
+        })
+        items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
         items.add(Item.SwitchItem("Luz interna", INTERN_LED_PATTERN))
-        items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
+        //items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 30 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
@@ -84,6 +94,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         eventHandler.onConnectEvent {
             btLoading.visibility = View.GONE
 
+            alarmTitle.visibility = View.VISIBLE
             tempTitle.visibility = View.VISIBLE
             tempValue.visibility = View.VISIBLE
             itemsRecyclerView.visibility = View.VISIBLE
@@ -108,7 +119,6 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
             }
         }
 
-        subscribeEventBooleanWithAdapter(ALARM_PATTERN)
         subscribeEventBooleanWithAdapter(INTERN_LED_PATTERN)
         subscribeEventBooleanWithAdapter(INTERN_AUTO_LED_PATTERN)
         subscribeEventBooleanWithAdapter(BACK_LANTERN_PATTERN)
@@ -139,19 +149,32 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
                 OTA_PATTERN, it.toBoolean()
             )
         }
+        subscribeEvent(ALARM_PATTERN) {
+            setColoredText(
+                it.toBoolean(), alarmTitle, "alarm enabled", "alarm off"
+            )
+            itemsAdapter.updateSwitchItem(
+                ALARM_PATTERN, it.toBoolean()
+            )
+        }
+        subscribeEvent(ALARM_STATUS_PATTERN) {
+            if (it.toBoolean()) {
+                openAlarmDialog()
+            } else {
+                dialog?.dismiss()
+            }
+        }
         subscribeEvent(TEMP_PATTERN) {
             tempValue.text = "$it ºC"
         }
-        subscribeEvent(BACKPACK_CONSUMPTION_PATTERN) {
-            itemsAdapter.updateOutputItem(
-                BACKPACK_CONSUMPTION_PATTERN, "$it mA"
-            )
+        subscribeEventOutput(BACKPACK_CONSUMPTION_PATTERN) {
+            "$it mA"
         }
-        subscribeEvent(SOLAR_CONSUMPTION_PATTERN) {
-            itemsAdapter.updateOutputItem(
-                SOLAR_CONSUMPTION_PATTERN, "$it mA"
-            )
+        subscribeEventOutput(BACKPACK_CONSUMPTION_RAW_PATTERN)
+        subscribeEventOutput(SOLAR_CONSUMPTION_PATTERN) {
+            "$it mA"
         }
+        subscribeEventOutput(SOLAR_CONSUMPTION_RAW_PATTERN)
     }
 
     private fun setColoredText(
@@ -172,6 +195,17 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
 
     private fun MainActivity.subscribeEvent(pattern: String, callback: (String) -> Unit) {
         eventHandler.subscribeToEvent(pattern, callback)
+    }
+
+    private fun MainActivity.subscribeEventOutput(
+        pattern: String,
+        callback: (String) -> String = { it }
+    ) {
+        eventHandler.subscribeToEvent(pattern) {
+            itemsAdapter.updateOutputItem(
+                pattern, callback.invoke(it)
+            )
+        }
     }
 
     private fun MainActivity.subscribeEventBooleanWithAdapter(pattern: String) {
@@ -199,6 +233,25 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         Toast.makeText(this, "Ação: ${item.name}", Toast.LENGTH_LONG).show()
     }
 
+    private fun openAlarmDialog() {
+        val builder = AlertDialog.Builder(this@MainActivity)
+
+        // Set the alert dialog title
+        builder.setTitle("Alarme Disparado!")
+
+        // Display a message on alert dialog
+        builder.setMessage("Alguém ativou o alarme do BRUTUS!")
+
+        // Set a positive button and its click listener on alert dialog
+        builder.setPositiveButton("desarmar") { dialog, which ->
+            val data = "$ALARM_STATUS_PATTERN:0"
+            btService.send(data, true)
+        }
+
+        dialog = builder.create()
+        dialog?.show()
+    }
+
     companion object {
         private const val BRUTUS_ADDRESS = "3C:71:BF:0F:F5:32"
         private const val BRUTUS_DEVICE_NAME = "BrutusV2"
@@ -209,6 +262,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val BACK_LANTERN_PATTERN = "backLantern"
         private const val TEMP_PATTERN = "temp"
         private const val ALARM_PATTERN = "alarm"
+        private const val ALARM_STATUS_PATTERN = "alarmStatus"
         private const val USB_PORT_PATTERN = "usbPort"
         private const val MODULES_PATTERN = "modules"
         private const val VOLUME_PATTERN = "volume"
@@ -220,7 +274,10 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val OTA_PATTERN = "ota"
         private const val RESTART_PATTERN = "espRestart"
         private const val BACKPACK_CONSUMPTION_PATTERN = "backpackConsumption"
+        private const val BACKPACK_CONSUMPTION_RAW_PATTERN = "backpackConsumptionRaw"
         private const val SOLAR_CONSUMPTION_PATTERN = "solarConsumption"
+        private const val SOLAR_CONSUMPTION_RAW_PATTERN = "solarConsumptionRaw"
+        private const val PLAY_SONG_PATTERN = "playSong"
     }
 
 }

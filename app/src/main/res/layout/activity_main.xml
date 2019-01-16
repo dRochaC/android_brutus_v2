@@ -57,10 +57,24 @@
                 tools:visibility="visible" />
 
             <com.thebrownarrow.customfont.CustomFontTextView
-                android:id="@+id/isPlayingTitle"
+                android:id="@+id/alarmTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
+                android:layout_marginEnd="20dp"
+                android:text="alarm off"
+                android:textColor="@color/red"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:custom_typeface="@string/font_roboto_light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/appTitle"
+                tools:visibility="visible" />
+
+            <com.thebrownarrow.customfont.CustomFontTextView
+                android:id="@+id/isPlayingTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="20dp"
                 android:text="idle"
                 android:textColor="@color/red"
@@ -68,7 +82,7 @@
                 android:visibility="gone"
                 app:custom_typeface="@string/font_roboto_light"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/appTitle"
+                app:layout_constraintTop_toBottomOf="@+id/alarmTitle"
                 tools:visibility="visible" />
 
             <com.thebrownarrow.customfont.CustomFontTextView
@@ -105,7 +119,7 @@
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
-                android:paddingTop="200dp"
+                android:paddingTop="220dp"
                 android:paddingBottom="50dp"
                 android:scrollbars="vertical"
                 android:visibility="gone"
