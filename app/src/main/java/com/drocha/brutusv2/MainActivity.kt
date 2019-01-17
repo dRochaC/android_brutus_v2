@@ -73,13 +73,14 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         })
         items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
         items.add(Item.SwitchItem("Luz interna", INTERN_LED_PATTERN))
-        //items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
+        items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 30 })
         items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
         items.add(Item.SwitchItem("Wifi", WIFI_PATTERN))
         items.add(Item.SwitchItem("OTA", OTA_PATTERN))
+        items.add(Item.NumberInputItem("Play", PLAY_SONG_PATTERN))
         items.add(Item.PushButtonItem("Modo Iron Man", IRON_MAN_MODE_PATTERN))
         items.add(Item.PushButtonItem("Parar música", STOP_MUSIC_PATTERN))
         items.add(Item.PushButtonItem("Restart", RESTART_PATTERN))
@@ -227,22 +228,22 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         btService.send(data, true)
     }
 
-    override fun onPushButtonItemClick(item: Item) {
-        val data = "${item.pattern}:1"
+    override fun onEventItemClick(item: Item) {
+        val value = if (item is Item.NumberInputItem) {
+            item.value
+        } else {
+            "1"
+        }
+        val data = "${item.pattern}:$value"
         btService.send(data, true)
         Toast.makeText(this, "Ação: ${item.name}", Toast.LENGTH_LONG).show()
     }
 
     private fun openAlarmDialog() {
         val builder = AlertDialog.Builder(this@MainActivity)
-
-        // Set the alert dialog title
+        builder.setCancelable(false)
         builder.setTitle("Alarme Disparado!")
-
-        // Display a message on alert dialog
         builder.setMessage("Alguém ativou o alarme do BRUTUS!")
-
-        // Set a positive button and its click listener on alert dialog
         builder.setPositiveButton("desarmar") { dialog, which ->
             val data = "$ALARM_STATUS_PATTERN:0"
             btService.send(data, true)

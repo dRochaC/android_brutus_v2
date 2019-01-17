@@ -35,6 +35,11 @@ sealed class Item(
         var value = ""
         var textColor: Int = Color.BLACK
     }
+
+    class NumberInputItem(name: String, pattern: String, color: Int = -1, title: String = "") :
+        Item(name, pattern, color, title) {
+        var value = ""
+    }
 }
 
 class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -48,6 +53,7 @@ class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     val itemOutput = view.findViewById<TextView?>(R.id.itemOutput)
     val pushButton = view.findViewById<Button?>(R.id.itemAction)
     val progressBar = view.findViewById<ProgressBar?>(R.id.progressBar)
+    val inputItemAction = view.findViewById<EditText?>(R.id.inputItemAction)
 }
 
 class ItemsAdapter(private val items: MutableList<Item>, private val listener: ItemValueChange) :
@@ -56,7 +62,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
     interface ItemValueChange {
         fun onSwitchItemValueChanged(pattern: String, isChecked: Boolean)
         fun onSeekBarItemValueChanged(pattern: String, value: Int)
-        fun onPushButtonItemClick(item: Item)
+        fun onEventItemClick(item: Item)
     }
 
     fun updateModuleItems(moduleData: ModuleData) {
@@ -187,6 +193,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
             SEEK_BAR -> R.layout.recycler_seekbar_item
             OUTPUT -> R.layout.recycler_output_item
             PUSH_BUTTON -> R.layout.recycler_pushbutton_item
+            NUMBER_INPUT -> R.layout.recycler_number_input_item
             else -> -1
         }
 
@@ -248,7 +255,16 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
                 holder.itemOutput?.setTextColor(item.textColor)
             }
             is Item.PushButtonItem -> {
-                holder.pushButton?.setOnClickListener { listener.onPushButtonItemClick(item) }
+                holder.pushButton?.setOnClickListener { listener.onEventItemClick(item) }
+            }
+            is Item.NumberInputItem -> {
+                holder.pushButton?.setOnClickListener {
+                    item.value = holder.inputItemAction?.text.toString()
+                    holder.pushButton.isFocusable = true
+                    holder.pushButton.isFocusableInTouchMode = true
+
+                    listener.onEventItemClick(item)
+                }
             }
         }
     }
@@ -263,6 +279,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
             is Item.SeekBarItem -> SEEK_BAR
             is Item.OutputItem -> OUTPUT
             is Item.PushButtonItem -> PUSH_BUTTON
+            is Item.NumberInputItem -> NUMBER_INPUT
         }
     }
 
@@ -271,6 +288,7 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
         private const val SEEK_BAR = 1
         private const val OUTPUT = 2
         private const val PUSH_BUTTON = 3
+        private const val NUMBER_INPUT = 4
     }
 
 }
