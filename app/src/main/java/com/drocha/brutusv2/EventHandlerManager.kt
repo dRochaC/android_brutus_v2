@@ -23,8 +23,6 @@ class EventHandlerManager(btService: BluetoothSPP) : BluetoothSPP.OnDataReceived
 
     private var onModule1Event: (module: ModuleData, withError: Boolean) -> Unit = { _, _ -> }
 
-    private var handler: Handler? = null
-
     init {
         btService.setOnDataReceivedListener(this)
     }

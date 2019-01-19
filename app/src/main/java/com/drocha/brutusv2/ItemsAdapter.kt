@@ -123,23 +123,29 @@ class ItemsAdapter(private val items: MutableList<Item>, private val listener: I
         it: CommandType,
         moduleData: ModuleData
     ): Item {
+
+        val pattern = "${moduleData.name}.${it.label}"
+
         return when (it) {
-            is CommandType.ActionSwitch -> {
-                val pattern = "${moduleData.id}:${it.command}"
+            is CommandType.Switch -> {
                 val swItem = Item.SwitchItem(it.label, pattern, moduleData.color, moduleData.name)
                 swItem.isChecked = it.value.toBoolean()
                 swItem
             }
             is CommandType.OutputValue -> {
-                val pattern = "${moduleData.id}:${it.label}"
                 val outputItem =
                     Item.OutputItem(it.label, pattern, moduleData.color, moduleData.name)
                 outputItem.value = it.value
                 outputItem
             }
-            is CommandType.ActionPushButton -> {
-                val pattern = "${moduleData.id}:${it.command}"
+            is CommandType.PushButton -> {
                 Item.PushButtonItem(it.label, pattern, moduleData.color, moduleData.name)
+            }
+            is CommandType.SeekBar -> {
+                Item.SeekBarItem(it.label, pattern, moduleData.color, moduleData.name).apply {
+                    maxProgress = 10
+                    progress = it.value.toInt()
+                }
             }
         }
     }

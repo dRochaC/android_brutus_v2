@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 30 })
-        items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
+        //items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
         items.add(Item.SwitchItem("Wifi", WIFI_PATTERN))
         items.add(Item.SwitchItem("OTA", OTA_PATTERN))

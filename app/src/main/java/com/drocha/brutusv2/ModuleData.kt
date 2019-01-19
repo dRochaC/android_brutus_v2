@@ -4,14 +4,16 @@ import android.graphics.Color
 import android.util.Log
 
 const val INFO = "INFO"
-const val ACTION_SWITCH = "ACTION_SWITCH"
-const val ACTION_PUSH_BUTTON = "ACTION_PUSH_BUTTON"
+const val SWITCH = "SWITCH"
+const val SEEK_BAR = "SEEK_BAR"
+const val PUSH_BUTTON = "PUSH_BUTTON"
 const val OUTPUT_VALUE = "OUTPUT_VALUE"
 
-sealed class CommandType(val value: String) {
-    class ActionPushButton(val label: String, val command: String) : CommandType("")
-    class ActionSwitch(val label: String, val command: String, value: String) : CommandType(value)
-    class OutputValue(val label: String, value: String) : CommandType(value)
+sealed class CommandType(val label: String, val value: String) {
+    class PushButton(label: String) : CommandType(label, "")
+    class Switch(label: String, value: String) : CommandType(label, value)
+    class OutputValue(label: String, value: String) : CommandType(label, value)
+    class SeekBar(label: String, value: String) : CommandType(label, value)
 }
 
 object CommandTypeParser {
@@ -25,24 +27,20 @@ object CommandTypeParser {
             mapList.forEach {
 
                 val type = it["type"]
+                val label = it["label"]
+                val value = it["value"]
 
                 if (type == INFO) {
                     moduleData =
-                            ModuleData(it["id"]!!, it["name"]!!, Color.parseColor(it["color"]!!))
+                            ModuleData(it["name"]!!, Color.parseColor(it["color"]!!))
                     return@forEach
                 }
 
                 val commandType = when (type) {
-                    ACTION_SWITCH -> CommandType.ActionSwitch(
-                        it["label"]!!,
-                        it["command"]!!,
-                        it["value"]!!
-                    )
-                    OUTPUT_VALUE -> CommandType.OutputValue(it["label"]!!, it["value"]!!)
-                    ACTION_PUSH_BUTTON -> CommandType.ActionPushButton(
-                        it["label"]!!,
-                        it["command"]!!
-                    )
+                    SWITCH -> CommandType.Switch(label!!, value!!)
+                    OUTPUT_VALUE -> CommandType.OutputValue(label!!, value!!)
+                    PUSH_BUTTON -> CommandType.PushButton(label!!)
+                    SEEK_BAR -> CommandType.SeekBar(label!!, value!!)
                     else -> throw UnsupportedOperationException()
                 }
 
@@ -60,7 +58,6 @@ object CommandTypeParser {
 }
 
 class ModuleData(
-    val id: String,
     val name: String,
     val color: Int,
     var commandTypeList: List<CommandType> = listOf()
