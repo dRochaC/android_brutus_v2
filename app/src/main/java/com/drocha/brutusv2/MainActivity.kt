@@ -59,16 +59,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
 
         val items = mutableListOf<Item>()
-        items.add(Item.OutputItem("Consumo total", BACKPACK_CONSUMPTION_PATTERN).apply {
-            textColor = ContextCompat.getColor(this@MainActivity, R.color.red)
-        })
-        items.add(Item.OutputItem("Consumo total (RAW)", BACKPACK_CONSUMPTION_RAW_PATTERN).apply {
-            textColor = ContextCompat.getColor(this@MainActivity, R.color.red)
-        })
-        items.add(Item.OutputItem("Energia solar", SOLAR_CONSUMPTION_PATTERN).apply {
-            textColor = ContextCompat.getColor(this@MainActivity, R.color.green)
-        })
-        items.add(Item.OutputItem("Energia solar (RAW)", SOLAR_CONSUMPTION_RAW_PATTERN).apply {
+        items.add(Item.OutputItem("Energia Solar (Tensão)", SOLAR_VOLTAGE_PATTERN).apply {
             textColor = ContextCompat.getColor(this@MainActivity, R.color.green)
         })
         items.add(Item.SwitchItem("Alarme", ALARM_PATTERN))
@@ -76,7 +67,6 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         items.add(Item.SwitchItem("Luz interna Automática", INTERN_AUTO_LED_PATTERN))
         items.add(Item.SwitchItem("Lanterna traseiro", BACK_LANTERN_PATTERN))
         items.add(Item.SeekBarItem("Volume", VOLUME_PATTERN).apply { maxProgress = 30 })
-        //items.add(Item.SwitchItem("Porta USB", USB_PORT_PATTERN))
         items.add(Item.SwitchItem("Descoberta de módulos", MODULES_PATTERN))
         items.add(Item.SwitchItem("Wifi", WIFI_PATTERN))
         items.add(Item.SwitchItem("OTA", OTA_PATTERN))
@@ -128,7 +118,6 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
                 VOLUME_PATTERN, it.toInt()
             )
         }
-        subscribeEventBooleanWithAdapter(USB_PORT_PATTERN)
         subscribeEventBooleanWithAdapter(MODULES_PATTERN)
         subscribeEvent(DF_PLAYER_PATTERN) {
             setColoredText(
@@ -168,14 +157,9 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         subscribeEvent(TEMP_PATTERN) {
             tempValue.text = "$it ºC"
         }
-        subscribeEventOutput(BACKPACK_CONSUMPTION_PATTERN) {
-            "$it mA"
+        subscribeEventOutput(SOLAR_VOLTAGE_PATTERN) {
+            "$it v"
         }
-        subscribeEventOutput(BACKPACK_CONSUMPTION_RAW_PATTERN)
-        subscribeEventOutput(SOLAR_CONSUMPTION_PATTERN) {
-            "$it mA"
-        }
-        subscribeEventOutput(SOLAR_CONSUMPTION_RAW_PATTERN)
     }
 
     private fun setColoredText(
@@ -264,7 +248,6 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val TEMP_PATTERN = "temp"
         private const val ALARM_PATTERN = "alarm"
         private const val ALARM_STATUS_PATTERN = "alarmStatus"
-        private const val USB_PORT_PATTERN = "usbPort"
         private const val MODULES_PATTERN = "modules"
         private const val VOLUME_PATTERN = "volume"
         private const val STOP_MUSIC_PATTERN = "stopMusic"
@@ -274,10 +257,7 @@ class MainActivity : AppCompatActivity(), ItemsAdapter.ItemValueChange {
         private const val WIFI_NAME_PATTERN = "wifiName"
         private const val OTA_PATTERN = "ota"
         private const val RESTART_PATTERN = "espRestart"
-        private const val BACKPACK_CONSUMPTION_PATTERN = "backpackConsumption"
-        private const val BACKPACK_CONSUMPTION_RAW_PATTERN = "backpackConsumptionRaw"
-        private const val SOLAR_CONSUMPTION_PATTERN = "solarConsumption"
-        private const val SOLAR_CONSUMPTION_RAW_PATTERN = "solarConsumptionRaw"
+        private const val SOLAR_VOLTAGE_PATTERN = "solarVoltage"
         private const val PLAY_SONG_PATTERN = "playSong"
     }
 
